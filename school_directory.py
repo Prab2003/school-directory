@@ -323,6 +323,7 @@ def main(argv=None):
     parser.add_argument('--source-url', help='Official source URL for a local file')
     parser.add_argument('--database', action='store_true', help='Stage and preview against DATABASE_URL')
     parser.add_argument('--apply', action='store_true', help='Apply a validated, within-threshold database preview')
+    parser.add_argument('--bootstrap', action='store_true', help='Explicitly allow a reviewed first import into an empty database only')
     parser.add_argument('--output-sql', type=Path, help='Write private staging SQL for an operator; never publish this file')
     args = parser.parse_args(argv)
     if args.file:
@@ -339,6 +340,10 @@ def main(argv=None):
         source = discover(download(SOURCE_PAGE, 5 * 1024 * 1024).decode('utf-8-sig'))
         data = download(source['url'])
     source['sha256'] = hashlib.sha256(data).hexdigest()
+    if args.bootstrap:
+        if not (args.database or args.apply):
+            parser.error('--bootstrap requires --database or --apply')
+        source['allow_empty'] = True
     rows, skipped = parse(data)
     if len(rows) < source['min_rows'] or set(r['province'] for r in rows) != set(PROVINCES.values()):
         raise SourceError('National coverage check failed; existing schools were not changed')
