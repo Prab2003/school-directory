@@ -99,6 +99,10 @@ class ImporterTests(unittest.TestCase):
         row = ROW.copy(); row[3] = 'SPECIAL NEEDS EDUCATION SCHOOL'; row[5] = 'SPECIAL NEEDS EDUCATION CENTRE'
         self.assertEqual(sd.parse(csv_data(row))[0][0]['level'], 'other')
 
+    def test_intermediate_phase_preserves_existing_application_grouping(self):
+        row = ROW.copy(); row[3] = 'INTERMEDIATE SCHOOL'
+        self.assertEqual(sd.parse(csv_data(row))[0][0]['level'], 'primary')
+
     def test_ecd_excluded_and_counted(self):
         row = ROW.copy(); row[0] = '900000002'; row[5] = 'STAND ALONE ECD'; row[3] = 'ECD'
         rows, skipped = sd.parse(csv_data(ROW, row))
