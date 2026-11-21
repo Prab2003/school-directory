@@ -64,7 +64,7 @@ python school_directory.py --file private/national.xlsx --release 2025-Q3 --sour
 
 - Match an existing school by its unique EMIS number; its UUID and relationships stay intact.
 - Insert new open schools with new IDs and `verified=false`.
-- Update source-owned name, phase and location fields on unverified schools.
+- Update source-owned name, phase and location fields while preserving verification flags.
 - Preserve non-empty local locations when the source has missing/unknown values.
 - Preserve verification flags and local edits detected against the last applied snapshot.
   On the first import, existing differences are protected until ownership is established.
