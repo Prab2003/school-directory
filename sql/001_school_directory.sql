@@ -213,8 +213,15 @@ begin
     not exists(select 1 from school_directory.staged_schools incoming where incoming.run_id=p_run_id and incoming.emis_number=s.emis_number);
   select md5(coalesce(jsonb_agg(jsonb_build_array(p.emis_number,p.school_id,p.action,p.old_fields,p.new_fields) order by p.emis_number)::text,'[]')
     || run.source::text) into plan_hash from pg_temp.directory_import_plan p;
-  if existing_count=0 then reasons:=reasons||'"empty_database_requires_review"'::jsonb; end if;
-  if additions+updates>greatest(100,existing_count*0.10) then reasons:=reasons||'"more_than_10_percent_changes"'::jsonb; end if;
+  if existing_count=0 and not coalesce((run.source->>'allow_empty')::boolean,false) then
+    reasons:=reasons||'"empty_database_requires_review"'::jsonb;
+  end if;
+  if existing_count>0 and coalesce((run.source->>'allow_empty')::boolean,false) then
+    reasons:=reasons||'"bootstrap_only_for_empty_database"'::jsonb;
+  end if;
+  if existing_count>0 and additions+updates>greatest(100,existing_count*0.10) then
+    reasons:=reasons||'"more_than_10_percent_changes"'::jsonb;
+  end if;
   if missing>greatest(25,existing_count*0.05) then reasons:=reasons||'"more_than_5_percent_missing"'::jsonb; end if;
   if reviews>0 then reasons:=reasons||'"closures_or_emis_changes_require_review"'::jsonb; end if;
   if source.dataset_release is not null and run.source->>'release'<source.dataset_release then
