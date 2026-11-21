@@ -4,7 +4,13 @@ Portable handler: `school_search_api.mjs`. Supabase adapter:
 `supabase/functions/school-directory-search/index.ts`.
 
 Supabase route: `GET https://<project-ref>.supabase.co/functions/v1/school-directory-search?q=woodlands`.
-A website can instead mount the handler at `/api/public/schools/search`.
+A website can mount the handler at a route of its choosing.
+
+Skolo Saka’s existing website adapter at
+`https://www.skolosaka.co.za/api/public/schools/search?q=sunnyside` uses its own
+`{ schools, total, limit }` response envelope (limit at most 10). The school-search
+demo consumes that website adapter. The portable/Supabase adapter below uses
+`{ items }` with a maximum of 6; consumers must choose the matching envelope.
 
 ```json
 {"items":[{"id":"00000000-0000-4000-8000-000000000001","name":"Example Primary School","level":"primary","province":"Gauteng","municipality":"Example municipality","town":"Example town","verified":false}]}
