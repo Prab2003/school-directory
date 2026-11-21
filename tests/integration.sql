@@ -71,4 +71,20 @@ begin
 end
 $test$;
 rollback;
+begin;
+do $bootstrap$
+declare source jsonb; v_run uuid; result jsonb;
+begin
+  source:=jsonb_build_object('key','dbe-bootstrap','release','2025-Q3','sha256',repeat('3',64),
+    'url','https://www.education.gov.za/fictional-test.csv','licence','Fictional test data: MIT',
+    'min_rows',1,'required_provinces','[]'::jsonb,'allow_empty',true);
+  v_run:=(school_directory.begin_import(source)->>'run_id')::uuid;
+  perform school_directory.stage_import(v_run,'[{"emis_number":"900000001","name":"Fictional Bootstrap School","level":"primary","province":"Limpopo","status":"OPEN"}]');
+  result:=school_directory.finish_import(v_run,false,null);
+  if result->>'status'<>'previewed' then raise exception 'Explicit empty bootstrap was not previewed'; end if;
+  result:=school_directory.finish_import(v_run,true,result->>'plan_hash');
+  if result->>'status'<>'applied' or (select count(*) from public.schools)<>1 then raise exception 'Bootstrap failed'; end if;
+end
+$bootstrap$;
+rollback;
 select 'School directory integration checks passed' as result;
