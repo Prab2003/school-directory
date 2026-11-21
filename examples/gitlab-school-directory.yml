@@ -1,0 +1,12 @@
+# Include this in a private deployment project after deploying the schema.
+# Pin the importer to an independently verified commit and SHA-256 in your project.
+school-directory-sync:
+  image: python:3.13-slim
+  resource_group: school-directory-sync
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $SCHOOL_DIRECTORY_SYNC == "true" && $CI_COMMIT_BRANCH == "main"'
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq postgresql-client ca-certificates curl
+  script:
+    - test -n "$DATABASE_URL"
+    - python infra/school-directory/school_directory.py --apply
